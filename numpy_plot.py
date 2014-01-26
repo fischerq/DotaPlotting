@@ -37,6 +37,30 @@ C = np.hstack((ID[:,np.newaxis],T[:,np.newaxis]))
 print C
 
 threshold = 450
+scores = []
+
+#def normalize(score):
+#    if score > 1000:
+#        return score
+#    else:
+#        return 1000+(score-1000)/30
+
+def filter_interval(list, min, max):
+    result = []
+    for i in list:
+        if i >= min and i < max:
+            result.append(i)
+    return result
+
+def normalize(score):
+    if score < 350:
+        return score
+    else:
+        return 350+(score-350)/20
+
+min = 0
+max = 30*60*10
+step = 30*60*10
 
 def compute_visits(list):
     players_lists = {}
@@ -50,6 +74,9 @@ def compute_visits(list):
     for player in players_lists.keys():
         times = players_lists[player]
         times.sort()
+        global min
+        global max
+        times = filter_interval(times, min, max)
         n_visits = 1
         new_differences = []
         for i in range(1, len(times)):
@@ -57,17 +84,27 @@ def compute_visits(list):
             if (times[i] - times[i-1]) > threshold:
                 n_visits += 1
         score += n_visits
-    return score
+    global scores
+    scores.append(score)
+    return normalize(score)
 
-fig = plt.figure(figsize=(10.24, 10.24), dpi=100)
-img = imread('Minimap.jpg')
-plt.hexbin(X, Y, C=C,
-            reduce_C_function=compute_visits,
-           gridsize=150, cmap=CM.jet, bins=None, alpha=1, edgecolors='none', mincnt=1)
-plt.axis([-8200, 7930.0, -8400.0, 8080.0])
-plt.colorbar()
-plt.axis('off')
-plt.imshow(img, zorder=0, extent=[-8200, 7930.0, -8400.0, 8080.0])
-plt.savefig("save.png", bbox_inches='tight', dpi=100)
+
+fig = plt.figure(figsize=(10.24, 20.24), dpi=100)
+for i in range(0,6):
+    min = i*step
+    max = (i+1)*step
+    #fig.add_subplot(211)
+    img = imread('Minimap.jpg')
+    plt.hexbin(X, Y, C=C,
+                reduce_C_function=compute_visits,
+               gridsize=150, cmap=CM.jet, bins=None, alpha=1, edgecolors='none', mincnt=1)
+    plt.axis([-8200, 7930.0, -8400.0, 8080.0])
+    plt.colorbar()
+    plt.axis('off')
+    plt.imshow(img, zorder=0, extent=[-8200, 7930.0, -8400.0, 8080.0])
+    plt.savefig("save_{}.png".format(i), bbox_inches='tight', dpi=100)
+
+#fig.add_subplot(212)
+#plt.hist(scores, bins=100)
 plt.show()
 
