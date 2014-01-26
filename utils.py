@@ -26,3 +26,33 @@ def parse_csv(filename, sample_format, parse_type=COLUMNS):
                 for feature in sample_format.features:
                     result[feature].append(row.feature(feature))
         return result
+
+
+def combine_features(features):
+    result = []
+    for i in range(0, len(features[0])):
+        entry=()
+        for j in range(0,len(features)):
+            entry = entry + (features[j][i],)
+        result.append(entry)
+    return result
+
+
+def filter_samples(samples, check, format=COLUMNS):
+    result = []
+    if format is ROWS:
+        for sample in samples:
+            if check(sample):
+                result.append(sample)
+    else:
+        result = {}
+        for col in samples.keys():
+            result[col] = []
+        for i in range(0, len(samples[samples.keys()[0]])):
+            sample = []
+            for col in samples.keys():
+                sample.append(samples[col][i])
+            if check(sample):
+                for col in samples.keys():
+                    result[col].append(samples[col][i])
+    return result
